@@ -1,0 +1,46 @@
+services:
+  app:
+    container_name: sd_solutions_test_task_app
+    build: .
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - '8000:8000'
+    networks:
+      - app-network
+
+  redis:
+    container_name: sd_solutions_test_task_redis
+    image: redis:7.2.3-alpine3.18
+    restart: on-failure
+    command: redis-server --stop-writes-on-bgsave-error no
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - app-network
+
+  minio:
+    container_name: sd_solutions_test_task_minio
+    image: minio/minio
+    volumes:
+      - ./media_minio:/data
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    networks:
+      - app-network
+
+networks:
+  app-network:
+volumes:
+  app:
+    driver: local
+  redis:
+    driver: local
+  db:
+    driver: local
